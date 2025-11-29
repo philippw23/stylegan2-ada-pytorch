@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=preprocess_btxrd
-#SBATCH --output=/vol/miltank/users/wiep/Documents/bone-tumour-classification/logs/preprocess-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/bone-tumour-classification/logs/preprocess-%A.err
+#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/preprocess-%A.out
+#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/preprocess-%A.err
 ##SBATCH --partition=universe,asteroids
 ##SBATCH --qos=master-queuesave
 #SBATCH --time=0-02:00:00
@@ -22,12 +22,12 @@ fi
 conda deactivate || true
 conda activate /meta/users/wiep/envs/stylegan
 
-REPO_DIR="/vol/miltank/users/wiep/Documents/bone-tumour-classification"
+REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
 SCRIPT="${REPO_DIR}/data/style_gan_preprocessing.py"
 
 IMAGE_DIR="${IMAGE_DIR:-${REPO_DIR}/data/dataset/final_patched_BTXRD}"
 JSON_DIR="${JSON_DIR:-${REPO_DIR}/data/dataset/BTXRD/Annotations}"
-OUTPUT_DIR="${OUTPUT_DIR:-${REPO_DIR}/stylegan2-ada-pytorch/BTXRD_resized_sorted}"
+OUTPUT_DIR="${OUTPUT_DIR:-${REPO_DIR}/data/dataset/BTXRD_resized_sorted}"
 TARGET_SIZE="${TARGET_SIZE:-256}"
 CENTER_CROP="${CENTER_CROP:-0}" # set to 1 to enable
 NO_DATASET_JSON="${NO_DATASET_JSON:-0}" # set to 1 to skip dataset.json

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=install_cuda_toolkit
-#SBATCH --output=/vol/miltank/users/wiep/Documents/bone-tumour-classification/logs/install_cuda_toolkit-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/bone-tumour-classification/logs/install_cuda_toolkit-%A.err
+#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/install_cuda_toolkit-%A.out
+#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/install_cuda_toolkit-%A.err
 #SBATCH --partition=universe
 #SBATCH --time=0-01:00:00
 #SBATCH --cpus-per-task=2

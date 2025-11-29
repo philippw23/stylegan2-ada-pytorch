@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=stylegan_cond
-#SBATCH --output=/vol/miltank/users/wiep/Documents/bone-tumour-classification/logs/stylegan_cond-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/bone-tumour-classification/logs/stylegan_cond-%A.err
+#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/stylegan_cond-%A.out
+#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/stylegan_cond-%A.err
 ##SBATCH --partition=universe,asteroids
 #SBATCH --qos=master-queuesave
 #SBATCH --time=0-48:00:00
@@ -23,12 +23,12 @@ conda activate stylegan
 
 
 # Run the program
-REPO_DIR="/vol/miltank/users/wiep/Documents/bone-tumour-classification"
-# cd "${REPO_DIR}/stylegan2-ada-pytorch"
+REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
+# cd "${REPO_DIR}"
 
 # Override via env vars when submitting (e.g. `sbatch --export=ALL,BATCH=8 ...`).
 DATASET_ZIP="${DATASET_ZIP:-${REPO_DIR}/data/btxrd_dataset.zip}"
-OUTDIR="${OUTDIR:-${REPO_DIR}/checkpoints/stylegan2ada_cond3}"
+OUTDIR="${OUTDIR:-${REPO_DIR}/checkpoints/stylegan2ada_cond}"
 GPUS="${GPUS:-1}"
 BATCH="${BATCH:-16}"
 CFG="${CFG:-auto}"

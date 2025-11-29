@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=dataset_tool
-#SBATCH --output=/vol/miltank/users/wiep/Documents/bone-tumour-classification/logs/dataset_tool-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/bone-tumour-classification/logs/dataset_tool-%A.err
+#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/dataset_tool-%A.out
+#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/dataset_tool-%A.err
 ##SBATCH --partition=universe,asteroids
 ##SBATCH --qos=master-queuesave
 #SBATCH --time=0-04:00:00
@@ -22,10 +22,10 @@ fi
 conda deactivate || true
 conda activate /meta/users/wiep/envs/stylegan
 
-REPO_DIR="/vol/miltank/users/wiep/Documents/bone-tumour-classification"
-cd "${REPO_DIR}/stylegan2-ada-pytorch"
+REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
+cd "${REPO_DIR}"
 
-SOURCE_DIR="${SOURCE_DIR:-BTXRD_resized_sorted}"
+SOURCE_DIR="${SOURCE_DIR:-data/dataset/BTXRD_resized_sorted}"
 DEST_PATH="${DEST_PATH:-${REPO_DIR}/data/btxrd_dataset.zip}"
 MAX_IMAGES="${MAX_IMAGES:-}"
 TRANSFORM="${TRANSFORM:-}"
