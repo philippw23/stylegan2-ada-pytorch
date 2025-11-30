@@ -1,30 +1,32 @@
 #!/bin/bash
-#SBATCH --job-name=stylegan_cond
-#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/stylegan_cond-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/stylegan_cond-%A.err
-##SBATCH --partition=universe,asteroids
-#SBATCH --qos=master-queuesave
-#SBATCH --time=0-48:00:00
-#SBATCH --gres=gpu:1
+#SBATCH --job-name=training
+#SBATCH --output=training-%A.out
+#SBATCH --error=training-%A.err
+##SBATCH --partition=universe,asteroids 
+##SBATCH --qos=master-queuesave
+#SBATCH --time=1-00:00:00
+#SBATCH --gres=gpu:8
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
 
-# Load python module
-source ~/.bashrc
-ml python/anaconda3
 
-# Activate corresponding environment
-# If you launch your script from a terminal where your environment is already loaded, conda won't activate the environment. The following guards against that.
-#Not necessary if you always run this script from a clean terminal
-#conda deactivate
-# If the following does not work, try 'source activate <env-name>'
+# Load Python module
+source /meta/opt/anaconda3/etc/profile.d/conda.sh
 eval "$(conda shell.bash hook)"
-conda activate stylegan
 
+# Activate conda env
+conda activate /meta/users/cahu/my_env
+
+# Install dependencies
+conda install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
+pip install ninja
+conda install -y gcc_linux-64=9 gxx_linux-64=9
+
+# Set CUDA_HOME to the root of the conda environment
+export CUDA_HOME=$CONDA_PREFIX
 
 # Run the program
-REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
-# cd "${REPO_DIR}"
+REPO_DIR="/vol/miltank/users/cahu/stylegan2-ada-pytorch"
 
 # Override via env vars when submitting (e.g. `sbatch --export=ALL,BATCH=8 ...`).
 DATASET_ZIP="${DATASET_ZIP:-${REPO_DIR}/data/btxrd_dataset.zip}"
@@ -42,17 +44,5 @@ SEED="${SEED:-42}"
 
 mkdir -p "${OUTDIR}" "${REPO_DIR}/logs"
 
-python train.py \
-  --outdir="${OUTDIR}" \
-  --data="${DATASET_ZIP}" \
-  --gpus="${GPUS}" \
-  --batch="${BATCH}" \
-  --cfg="${CFG}" \
-  --snap="${SNAP}" \
-  --mirror="${MIRROR}" \
-  --cond=1 \
-  --seed="${SEED}" \
-  --aug="${AUG}" \
-  --metrics="${METRICS}" \
-  ${KIMG:+--kimg="${KIMG}"} \
-  ${RESUME:+--resume="${RESUME}"}
+# Run the training script
+python train.py --outdir=./checkpoints/stylegan2ada_cond --data=./data/btxrd_dataset.zip --cond=1 --mirror=1 --batch=16 --gamma=0 --aug=ada
