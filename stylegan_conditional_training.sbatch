@@ -4,8 +4,8 @@
 #SBATCH --error=training-%A.err
 ##SBATCH --partition=universe,asteroids 
 ##SBATCH --qos=master-queuesave
-#SBATCH --time=1-00:00:00
-#SBATCH --gres=gpu:8
+#SBATCH --time=5-00:00:00
+#SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
 
