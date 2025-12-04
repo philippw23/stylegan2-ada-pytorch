@@ -7,6 +7,7 @@
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 
 import os
+import sys
 import glob
 import torch
 import torch.utils.cpp_extension
@@ -104,10 +105,13 @@ def get_plugin(module_name, sources, **build_kwargs):
                     # wait until done and continue.
                     baton.wait()
             digest_sources = [os.path.join(digest_build_dir, os.path.basename(x)) for x in sources]
-            torch.utils.cpp_extension.load(name=module_name, build_directory=build_dir,
+            module = torch.utils.cpp_extension.load(name=module_name, build_directory=build_dir,
                 verbose=verbose_build, sources=digest_sources, **build_kwargs)
         else:
-            torch.utils.cpp_extension.load(name=module_name, verbose=verbose_build, sources=sources, **build_kwargs)
+            module = torch.utils.cpp_extension.load(name=module_name, verbose=verbose_build, sources=sources, **build_kwargs)
+        # PyTorch 2.9's load() may not register the module in sys.modules; do it explicitly
+        if module_name not in sys.modules:
+            sys.modules[module_name] = module
         module = importlib.import_module(module_name)
 
     except:

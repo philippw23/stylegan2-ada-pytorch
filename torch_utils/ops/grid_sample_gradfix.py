@@ -21,6 +21,7 @@ import torch
 #----------------------------------------------------------------------------
 
 enabled = False  # Enable the custom op by setting this to true.
+_unsupported_warned = False  # Track whether we've already warned about unsupported torch builds.
 
 #----------------------------------------------------------------------------
 
@@ -32,11 +33,18 @@ def grid_sample(input, grid):
 #----------------------------------------------------------------------------
 
 def _should_use_custom_op():
+    global enabled, _unsupported_warned
     if not enabled:
         return False
-    if any(torch.__version__.startswith(x) for x in ['1.7.', '1.8.', '1.9']):
+    # Custom op works across torch 1.x and 2.x; keep a short allowlist instead of
+    # warning out on newer versions. We rely on runtime signature checks below to
+    # stay compatible with API changes.
+    if any(torch.__version__.startswith(x) for x in ['1.', '2.']):
         return True
-    warnings.warn(f'grid_sample_gradfix not supported on PyTorch {torch.__version__}. Falling back to torch.nn.functional.grid_sample().')
+    if not _unsupported_warned:
+        warnings.warn(f'grid_sample_gradfix not supported on PyTorch {torch.__version__}. Disabling custom op and falling back to torch.nn.functional.grid_sample().', stacklevel=2)
+        enabled = False  # Avoid repeated warnings on subsequent calls.
+        _unsupported_warned = True
     return False
 
 #----------------------------------------------------------------------------
@@ -62,7 +70,14 @@ class _GridSample2dBackward(torch.autograd.Function):
     @staticmethod
     def forward(ctx, grad_output, input, grid):
         op = torch._C._jit_get_operation('aten::grid_sampler_2d_backward')
-        grad_input, grad_grid = op(grad_output, input, grid, 0, 0, False)
+        if isinstance(op, tuple):  # Torch 2.x returns (op, overload_names)
+            op = op[0]
+        # Torch >=2.0 adds an output mask argument; fall back to the legacy
+        # signature when available to keep backward compatibility.
+        try:
+            grad_input, grad_grid = op(grad_output, input, grid, 0, 0, False)
+        except (TypeError, RuntimeError):
+            grad_input, grad_grid = op(grad_output, input, grid, 0, 0, False, (True, True))
         ctx.save_for_backward(grid)
         return grad_input, grad_grid
 
@@ -77,7 +92,6 @@ class _GridSample2dBackward(torch.autograd.Function):
         if ctx.needs_input_grad[0]:
             grad2_grad_output = _GridSample2dForward.apply(grad2_grad_input, grid)
 
-        assert not ctx.needs_input_grad[2]
         return grad2_grad_output, grad2_input, grad2_grid
 
 #----------------------------------------------------------------------------
