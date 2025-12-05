@@ -5,7 +5,7 @@ from typing import List, Sequence, Tuple
 
 # Default paths relative to the repository root.
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_SPLIT_PATH = REPO_ROOT / "data" / "dataset" / "dataset_split.json"
+DEFAULT_SPLIT_PATH = REPO_ROOT / "data" / "dataset" / "dataset_split_old.json"
 DEFAULT_DATASET_DIR = REPO_ROOT / "data" / "dataset" / "BTXRD_resized_sorted"
 
 
@@ -61,14 +61,14 @@ def delete_non_train(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Delete BTXRD_resized_sorted images whose index is NOT listed in the train split of dataset_split.json."
+            "Delete BTXRD_resized_sorted images whose index is NOT listed in the train split of dataset_split_old.json."
         )
     )
     parser.add_argument(
         "--split-path",
         type=Path,
         default=DEFAULT_SPLIT_PATH,
-        help=f"Path to dataset_split.json (default: {DEFAULT_SPLIT_PATH})",
+        help=f"Path to dataset_split_old.json (default: {DEFAULT_SPLIT_PATH})",
     )
     parser.add_argument(
         "--dataset-dir",

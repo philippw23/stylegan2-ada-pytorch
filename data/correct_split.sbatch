@@ -9,7 +9,7 @@
 set -euo pipefail
 
 REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
-SPLIT_PATH="${SPLIT_PATH:-${REPO_DIR}/data/dataset/dataset_split.json}"
+SPLIT_PATH="${SPLIT_PATH:-${REPO_DIR}/data/dataset/dataset_split_old.json}"
 DATASET_DIR="${DATASET_DIR:-${REPO_DIR}/data/dataset/BTXRD_resized_sorted}"
 
 mkdir -p "${REPO_DIR}/logs"
