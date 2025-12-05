@@ -15,14 +15,14 @@ REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
 # Override via env vars when submitting, e.g.:
 # sbatch --export=ALL,SOURCE=/path/in,DEST=/path/out.zip data/dataset_tool.sbatch
 SOURCE="${SOURCE:-${REPO_DIR}/data/dataset/BTXRD_resized_sorted}"
-DEST="${DEST:-${REPO_DIR}/data/btxrd_dataset.zip}"
+DEST="${DEST:-${REPO_DIR}/data/btxrd_corrected_dataset.zip}"
 MAX_IMAGES="${MAX_IMAGES:-}"
 WIDTH="${WIDTH:-256}"
 HEIGHT="${HEIGHT:-256}"
 TRANSFORM="${TRANSFORM:-}"
 RESIZE_FILTER="${RESIZE_FILTER:-lanczos}"
 
-python dataset_tool.py --source="${SOURCE}" --dest="${DEST}" \
+python "${REPO_DIR}/data/dataset_tool.py" --source="${SOURCE}" --dest="${DEST}" \
     --width="${WIDTH}" --height="${HEIGHT}" --resize-filter=box
     
 # cmd=(python data/dataset_tool.py --source "$SOURCE" --dest "$DEST" --resize-filter "$RESIZE_FILTER")

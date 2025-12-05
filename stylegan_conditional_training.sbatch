@@ -4,7 +4,7 @@
 #SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_preprocessing-%A.err
 ##SBATCH --partition=universe,asteroids 
 ##SBATCH --qos=master-queuesave
-#SBATCH --time=5-00:00:00
+#SBATCH --time=8-00:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
@@ -42,7 +42,7 @@ OUTDIR="${OUTDIR:-${REPO_DIR}/checkpoints/stylegan2ada_cond}"
 GPUS="${GPUS:-1}"
 BATCH="${BATCH:-16}"
 CFG="${CFG:-auto}"
-SNAP="${SNAP:-50}"
+SNAP="${SNAP:-100}"
 MIRROR="${MIRROR:-1}"
 AUG="${AUG:-ada}"
 METRICS="${METRICS:-fid50k_full}"
@@ -68,7 +68,7 @@ python train.py \
   --data="${DATASET_ZIP}" \
   --gpus=1 \
   --batch="${BATCH}" \
-  --gamma=8 \
+  --gamma=15 \
   --cond=1 \
   --mirror="${MIRROR}" \
   --aug="${AUG}" \
