@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=training
-#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_preprocessing-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_preprocessing-%A.err
-##SBATCH --partition=universe,asteroids 
-##SBATCH --qos=master-queuesave
+#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_training-%A.out
+#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_training-%A.err
+#SBATCH --partition=universe,asteroids 
+#SBATCH --qos=master-queuesave
 #SBATCH --time=8-00:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
@@ -37,12 +37,12 @@ export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST:-8.0}"
 REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
 
 # Override via env vars when submitting (e.g. `sbatch --export=ALL,BATCH=8 ...`).
-DATASET_ZIP="${DATASET_ZIP:-${REPO_DIR}/data/btxrd_dataset.zip}"
+DATASET_ZIP="${DATASET_ZIP:-${REPO_DIR}/data/btxrd_corrected_dataset.zip}"
 OUTDIR="${OUTDIR:-${REPO_DIR}/checkpoints/stylegan2ada_cond}"
 GPUS="${GPUS:-1}"
 BATCH="${BATCH:-16}"
 CFG="${CFG:-auto}"
-SNAP="${SNAP:-100}"
+SNAP="${SNAP:-50}"
 MIRROR="${MIRROR:-1}"
 AUG="${AUG:-ada}"
 METRICS="${METRICS:-fid50k_full}"
@@ -68,7 +68,7 @@ python train.py \
   --data="${DATASET_ZIP}" \
   --gpus=1 \
   --batch="${BATCH}" \
-  --gamma=15 \
+  --gamma=10 \
   --cond=1 \
   --mirror="${MIRROR}" \
   --aug="${AUG}" \

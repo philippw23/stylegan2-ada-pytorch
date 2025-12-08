@@ -160,6 +160,40 @@ Custom datasets can be created from a folder containing images; see [`python dat
 
 Legacy TFRecords datasets are not supported &mdash; see below for instructions on how to convert them.
 
+### Building the corrected BTXRD ZIP
+
+This is the full pipeline that produces `data/btxrd_corrected_dataset.zip`. Run the commands from the repository root.
+
+1. **Copy the raw dataset into the repo**  
+   Make sure the input folders are under `data/dataset/`, i.e. `data/dataset/final_patched_BTXRD/` (images), `data/dataset/BTXRD/Annotations/` (JSON labels), and the split file `data/dataset/dataset_split_old.json`. If the data lives elsewhere, move it in (e.g. `cp -r /path/to/dataset data/dataset/` or `sbatch --export=ALL,SRC=/path/to/dataset,DEST_ROOT=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/data move_dataset.sbatch`).
+
+2. **Preprocess, resize, and sort into class folders**  
+   This writes `data/dataset/BTXRD_resized_sorted/` and a `dataset.json` with class ids. Adjust paths if yours differ.
+   ```bash
+   python data/style_gan_preprocessing.py \
+     --image-dir data/dataset/final_patched_BTXRD \
+     --json-dir data/dataset/BTXRD/Annotations \
+     --output-dir data/dataset/BTXRD_resized_sorted \
+     --target-size 256
+   ```
+
+3. **Filter to the train split and rewrite labels**  
+   Removes images not listed in `dataset_split_old.json` and rewrites `dataset.json` accordingly. Add `--dry-run` first if you want to preview deletions.
+   ```bash
+   python data/correct_split.py \
+     --split-path data/dataset/dataset_split_old.json \
+     --dataset-dir data/dataset/BTXRD_resized_sorted
+   ```
+
+4. **Create the corrected ZIP for StyleGAN**  
+   Generates the final archive used for training.
+   ```bash
+   python data/dataset_tool.py \
+     --source data/dataset/BTXRD_resized_sorted \
+     --dest data/btxrd_corrected_dataset.zip \
+     --width 256 --height 256 --resize-filter box
+   ```
+
 **FFHQ**:
 
 Step 1: Download the [Flickr-Faces-HQ dataset](https://github.com/NVlabs/ffhq-dataset) as TFRecords.
