@@ -10,7 +10,7 @@ from PIL import Image
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_IMAGE_DIR = REPO_ROOT / "data" / "dataset" / "final_patched_BTXRD"
 DEFAULT_JSON_DIR = REPO_ROOT / "data" / "dataset" / "BTXRD" / "Annotations"
-DEFAULT_OUTPUT_DIR = REPO_ROOT / "data" / "dataset" / "BTXRD_resized_sorted"
+DEFAULT_OUTPUT_DIR = REPO_ROOT / "data" / "dataset" / "BTXRD_resized_sorted_with_anatomical_location"
 DEFAULT_XLSX_PATH = REPO_ROOT / "data" / "dataset" / "BTXRD" / "dataset.xlsx"
 
 TUMOR_CLASSES = [

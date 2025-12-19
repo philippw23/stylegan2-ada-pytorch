@@ -18,7 +18,7 @@ mkdir -p "$LOG_DIR"
 source /meta/opt/anaconda3/etc/profile.d/conda.sh
 
 # Activate conda env
-conda activate stylegan5
+conda activate preproc
 
 # Ensure Pillow is available (required for preprocessing)
 python -m pip install --user pillow
@@ -27,4 +27,4 @@ python data/style_gan_preprocessing.py \
     --image-dir "/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/data/dataset/final_patched_BTXRD" \
     --json-dir "/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/data/dataset/BTXRD/Annotations" \
     --output-dir "/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/data/dataset/BTXRD_resized_sorted" \
-    --target-size 256
+    --target-size 256 
