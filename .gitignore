@@ -1,6 +1,6 @@
 __pycache__/
 .cache/
-data/dataset/
+data/dataset/*BTXRD*
 btxrd_dataset.zip
 btxrd_corrected_dataset.zip
 logs
