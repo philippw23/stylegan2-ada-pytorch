@@ -5,6 +5,7 @@ btxrd_dataset.zip
 btxrd_corrected_dataset.zip
 logs
 checkpoints
+gamma_8
 
 # Ignore slurm output files
 *.out

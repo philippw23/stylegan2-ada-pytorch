@@ -4,7 +4,7 @@
 #SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_training-%A.err
 #SBATCH --partition=universe,asteroids 
 #SBATCH --qos=master-queuesave
-#SBATCH --time=8-00:00:00
+#SBATCH --time=7-00:00:00
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
@@ -16,6 +16,18 @@ eval "$(conda shell.bash hook)"
 
 # Activate conda env
 conda activate stylegan5
+
+# Detect GPU capability and export arch
+export TORCH_CUDA_ARCH_LIST="$(python - <<'PY'
+import torch
+major, minor = torch.cuda.get_device_capability(0)
+print(f"{major}.{minor}")
+PY
+)"
+
+# Force rebuild for this arch
+export TORCH_EXTENSIONS_DIR="/vol/miltank/users/wiep/.cache/torch_extensions"
+rm -rf "${TORCH_EXTENSIONS_DIR}/bias_act_plugin" "${TORCH_EXTENSIONS_DIR}/upfirdn2d_plugin"
 
 # Install dependencies
 conda install -y -c "nvidia/label/cuda-11.8.0" cuda-toolkit
@@ -68,7 +80,7 @@ python train.py \
   --data="${DATASET_ZIP}" \
   --gpus=1 \
   --batch="${BATCH}" \
-  --gamma=10 \
+  --gamma=14 \
   --cond=1 \
   --mirror="${MIRROR}" \
   --aug="${AUG}" \
