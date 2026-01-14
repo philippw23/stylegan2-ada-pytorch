@@ -49,8 +49,8 @@ export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST:-8.0}"
 REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
 
 # Override via env vars when submitting (e.g. `sbatch --export=ALL,BATCH=8 ...`).
-DATASET_ZIP="${DATASET_ZIP:-${REPO_DIR}/data/btxrd_corrected_dataset.zip}"
-OUTDIR="${OUTDIR:-${REPO_DIR}/checkpoints/stylegan2ada_cond}"
+DATASET_ZIP="${DATASET_ZIP:-${REPO_DIR}/data/btxrd_train_dataset.zip}"
+OUTDIR="${OUTDIR:-${REPO_DIR}/checkpoints/stylegan2ada_cond_train_corrected}"
 GPUS="${GPUS:-1}"
 BATCH="${BATCH:-16}"
 CFG="${CFG:-auto}"
@@ -80,7 +80,7 @@ python train.py \
   --data="${DATASET_ZIP}" \
   --gpus=1 \
   --batch="${BATCH}" \
-  --gamma=14 \
+  --gamma=6 \
   --cond=1 \
   --mirror="${MIRROR}" \
   --aug="${AUG}" \

@@ -14,8 +14,8 @@ REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
 
 # Override via env vars when submitting, e.g.:
 # sbatch --export=ALL,SOURCE=/path/in,DEST=/path/out.zip data/dataset_tool.sbatch
-SOURCE="${SOURCE:-${REPO_DIR}/data/dataset/BTXRD_resized_sorted}"
-DEST="${DEST:-${REPO_DIR}/data/btxrd_train_dataset.zip}"
+SOURCE="${SOURCE:-${REPO_DIR}/data/dataset/BTXRD_anatomical_resized_sorted}"
+DEST="${DEST:-${REPO_DIR}/data/btxrd_train_anatomical_dataset.zip}"
 MAX_IMAGES="${MAX_IMAGES:-}"
 WIDTH="${WIDTH:-256}"
 HEIGHT="${HEIGHT:-256}"

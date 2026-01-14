@@ -26,5 +26,6 @@ python -m pip install --user pillow
 python data/style_gan_preprocessing.py \
     --image-dir "/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/data/dataset/final_patched_BTXRD" \
     --json-dir "/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/data/dataset/BTXRD/Annotations" \
-    --output-dir "/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/data/dataset/BTXRD_resized_sorted" \
-    --target-size 256 
+    --output-dir "/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/data/dataset/BTXRD_anatomical_resized_sorted" \
+    --target-size 256 \
+    --use-anatomical-location

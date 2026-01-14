@@ -6,6 +6,7 @@ data/dataset/squared_padded
 logs
 checkpoints
 gamma_8
+generated_images
 
 # Ignore slurm output files
 *.out
