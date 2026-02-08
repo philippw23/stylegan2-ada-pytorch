@@ -2,7 +2,7 @@
 #SBATCH --job-name=generate
 #SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/stylegan_generate-%A.out
 #SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/stylegan_generate-%A.err
-#SBATCH --partition=universe,asteroids 
+#SBATCH --partition=asteroids 
 #SBATCH --qos=master-queuesave
 #SBATCH --time=7-00:00:00
 #SBATCH --gres=gpu:1
@@ -19,10 +19,10 @@ conda activate stylegan5
 
 # Set parameters for the output folder
 truncation=1.0
-snapshot=23800
+snapshot=15800
 gamma=6
 # Classes to generate (inclusive indices into class_names array)
-start_class=2
+start_class=0
 
 # If you want to override the end index, set END_CLASS before submitting:
 #   sbatch --export=END_CLASS=10 generate.sbatch
@@ -62,12 +62,12 @@ echo "Generating classes ${start_class}-${end_class}"
 
 for class in $(seq "${start_class}" "${end_class}"); do
   class_name=${class_names[$class]}
-  outdir="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/generated_images/${class_name}_gamma${gamma}_snapshot${snapshot}_trunc${truncation}"
+  outdir="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/generated_images_15800/${class_name}_gamma${gamma}_snapshot${snapshot}_trunc${truncation}"
   echo "Class ${class}: ${class_name}"
   python generate.py \
     --outdir="${outdir}" \
     --trunc=${truncation} \
     --seeds=0-499 \
-    --network="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/checkpoints/stylegan2ada_cond_train/00003-btxrd_train_anatomical_dataset-cond-mirror-auto1-gamma6-batch16-ada/network-snapshot-023800.pkl" \
+    --network="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/checkpoints/stylegan2ada_cond_train_corrected/00000-btxrd_train_anatomical_dataset-cond-mirror-auto1-gamma6-batch16-ada/network-snapshot-015800.pkl" \
     --class=${class}
 done
