@@ -1,3 +1,10 @@
+"""Preprocess BTXRD images and labels for StyleGAN2-ADA training.
+
+The script reads source images plus JSON annotations, optionally augments class
+labels with anatomical location metadata from an Excel file, resizes/crops
+images, and writes a class-sorted dataset including optional ``dataset.json``.
+"""
+
 import argparse
 import json
 import os
@@ -27,6 +34,7 @@ ANATOMICAL_LOCATIONS = ["upper limb", "lower limb", "pelvis"]
 
 
 def load_json(path: Path) -> dict:
+    """Load and parse a JSON file from disk."""
     with path.open("r") as f:
         return json.load(f)
 
@@ -43,6 +51,7 @@ def get_class_from_json(js: dict) -> Optional[str]:
 
 
 def center_crop_to_square(img: Image.Image) -> Image.Image:
+    """Return a centered square crop using the shorter image side."""
     w, h = img.size
     if w == h:
         return img
@@ -53,6 +62,7 @@ def center_crop_to_square(img: Image.Image) -> Image.Image:
 
 
 def _normalize_col_name(name: str) -> str:
+    """Normalize column names for case/format-insensitive matching."""
     return "".join(ch for ch in str(name).strip().lower() if ch.isalnum())
 
 
@@ -118,8 +128,10 @@ def process_dataset(
     xlsx_path: Optional[Path] = None,
     anatomical_locations: Optional[List[str]] = None,
 ) -> None:
+    """Run the full preprocessing pipeline and optionally write dataset metadata."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Collect only image files that should be part of the training dataset.
     files = [p for p in image_dir.iterdir() if p.suffix.lower() in {".png", ".jpg", ".jpeg"}]
     processed = 0
     skipped_missing_json = 0
@@ -134,6 +146,7 @@ def process_dataset(
             raise ValueError(
                 "xlsx_path must be provided when use_anatomical_location is enabled."
             )
+        # Build a lookup from image filename to anatomical region (upper/lower limb, pelvis).
         location_by_image_id = load_location_by_image_id(xlsx_path, anatomical_locations)
     else:
         location_by_image_id = {}
@@ -146,6 +159,7 @@ def process_dataset(
             skipped_missing_json += 1
             continue
 
+        # Read class label from the corresponding annotation file.
         js = load_json(json_path)
         class_name = get_class_from_json(js)
         if not class_name:
@@ -166,6 +180,7 @@ def process_dataset(
                 print(f"⚠️  No anatomical location for {img_path.name}")
                 skipped_missing_location += 1
                 continue
+            # Convert class label from e.g. "osteosarcoma" to "upper limb osteosarcoma".
             class_name = f"{location} {class_name}"
 
         class_dir = output_dir / class_name
@@ -174,6 +189,7 @@ def process_dataset(
         img = Image.open(img_path).convert("RGB")
         if crop_to_square:
             img = center_crop_to_square(img)
+        # StyleGAN2-ADA expects fixed-size inputs.
         img = img.resize((target_size, target_size), Image.LANCZOS)
 
         out_path = class_dir / img_path.name
@@ -194,6 +210,7 @@ def process_dataset(
 
     if write_dataset_json and label_entries:
         if use_anatomical_location:
+            # Keep deterministic class ordering for stable class->id mapping across runs.
             class_names = [
                 f"{loc} {tumor}"
                 for loc in anatomical_locations
@@ -212,6 +229,7 @@ def process_dataset(
 
 
 def parse_args() -> argparse.Namespace:
+    """Define and parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Preprocess BTXRD images for StyleGAN2-ADA.")
     parser.add_argument(
         "--image-dir",

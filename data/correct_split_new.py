@@ -1,3 +1,10 @@
+"""Keep only train-split images and align dataset.json labels accordingly.
+
+This script uses ``dataset_split.json`` plus an index-to-filename mapping to
+remove files that are not part of the train split and rewrites ``dataset.json``
+to include only retained entries.
+"""
+
 import argparse
 import json
 from pathlib import Path
@@ -28,6 +35,7 @@ def load_train_indices(split_path: Path) -> List[int]:
 
 
 def load_labels(dataset_json: Path) -> List[Tuple[str, int]]:
+    """Load ``labels`` entries from a StyleGAN-style dataset.json file."""
     data = json.loads(dataset_json.read_text())
     try:
         return data["labels"]
@@ -36,6 +44,7 @@ def load_labels(dataset_json: Path) -> List[Tuple[str, int]]:
 
 
 def load_index_map(index_map_path: Path) -> dict:
+    """Load index->filename mapping generated from original dataset order."""
     data = json.loads(index_map_path.read_text())
     if not isinstance(data, dict):
         raise ValueError(f"{index_map_path} must contain a JSON dictionary of index -> filename.")
@@ -43,6 +52,7 @@ def load_index_map(index_map_path: Path) -> dict:
 
 
 def rewrite_dataset_json(dataset_json: Path, labels: Sequence[Tuple[str, int]]) -> None:
+    """Rewrite dataset.json using the filtered label list."""
     dataset_json.write_text(json.dumps({"labels": list(labels)}))
 
 
@@ -53,10 +63,13 @@ def delete_not_in_split(
     index_map: dict,
     dry_run: bool,
 ) -> Tuple[int, int, List[str], List[Tuple[str, int]], List[str]]:
+    """Delete files not in train split and return deletion/retention statistics."""
+    # Ensure every requested train index can be resolved to a filename.
     missing_index = [idx for idx in train_indices if str(idx) not in index_map]
     if missing_index:
         raise KeyError(f"Index map missing {len(missing_index)} train indices (e.g. {missing_index[0]}).")
 
+    # Keep set based on filenames, because dataset.json stores relative file paths.
     keep_names = {index_map[str(idx)] for idx in train_indices}
     removed = 0
     missing: List[str] = []
@@ -69,6 +82,7 @@ def delete_not_in_split(
             kept_labels.append((rel_path, class_id))
             continue
 
+        # Delete only when not in dry-run mode; otherwise report planned changes.
         if file_path.exists():
             if not dry_run:
                 file_path.unlink()
@@ -81,6 +95,7 @@ def delete_not_in_split(
 
 
 def parse_args() -> argparse.Namespace:
+    """Define and parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description=(
             "Delete images not listed in the train split, using a final_patched index map to match filenames."
@@ -113,6 +128,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Execute split-based cleanup and print a human-readable summary."""
     args = parse_args()
     dataset_json = args.dataset_dir / "dataset.json"
 

@@ -6,8 +6,8 @@ data/dataset/squared_padded
 logs
 checkpoints
 gamma_8
-generated_images_15800
-generated_images_23800_cond_train
+generated_images_*
+
 # Ignore slurm output files
 *.out
 *.err

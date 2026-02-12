@@ -19,7 +19,7 @@ conda activate stylegan5
 
 # Set parameters for the output folder
 truncation=1.0
-snapshot=15800
+snapshot=020000
 gamma=6
 # Classes to generate (inclusive indices into class_names array)
 start_class=0
@@ -62,12 +62,12 @@ echo "Generating classes ${start_class}-${end_class}"
 
 for class in $(seq "${start_class}" "${end_class}"); do
   class_name=${class_names[$class]}
-  outdir="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/generated_images_15800/${class_name}_gamma${gamma}_snapshot${snapshot}_trunc${truncation}"
+  outdir="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/generated_images_${snapshot}/${class_name}_gamma${gamma}_snapshot${snapshot}_trunc${truncation}"
   echo "Class ${class}: ${class_name}"
   python generate.py \
     --outdir="${outdir}" \
     --trunc=${truncation} \
-    --seeds=0-499 \
-    --network="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/checkpoints/stylegan2ada_cond_train_corrected/00000-btxrd_train_anatomical_dataset-cond-mirror-auto1-gamma6-batch16-ada/network-snapshot-015800.pkl" \
+    --seeds=0-49 \
+    --network="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/checkpoints/stylegan2ada_cond_train_corrected/00000-btxrd_train_anatomical_dataset-cond-mirror-auto1-gamma6-batch16-ada/network-snapshot-${snapshot}.pkl" \
     --class=${class}
 done

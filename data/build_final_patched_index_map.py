@@ -1,3 +1,9 @@
+"""Create an index-to-filename map for final_patched_BTXRD image ordering.
+
+The resulting JSON is used to translate split indices from ``dataset_split.json``
+into concrete image filenames for downstream filtering steps.
+"""
+
 import argparse
 import json
 from pathlib import Path
@@ -11,6 +17,7 @@ DEFAULT_OUTPUT_PATH = REPO_ROOT / "data" / "dataset" / "final_patched_index_map.
 
 
 def load_split_indices(split_path: Path) -> List[int]:
+    """Load and merge train/test split indices from dataset_split.json."""
     split_data = json.loads(split_path.read_text())
     try:
         train_indices = split_data["train"]
@@ -28,10 +35,12 @@ def load_split_indices(split_path: Path) -> List[int]:
 
 
 def list_images(dataset_dir: Path) -> List[str]:
+    """List .jpeg filenames in deterministic lexicographic order."""
     return sorted([path.name for path in dataset_dir.glob("*.jpeg")])
 
 
 def validate_indices(indices: Sequence[int], total_images: int) -> None:
+    """Validate that split indices form a full zero-based permutation."""
     if not indices:
         raise ValueError("Split indices are empty.")
 
@@ -53,10 +62,12 @@ def validate_indices(indices: Sequence[int], total_images: int) -> None:
 
 
 def build_index_map(images: Sequence[str]) -> Dict[str, str]:
+    """Build JSON-serializable mapping: string index -> image filename."""
     return {str(idx): name for idx, name in enumerate(images)}
 
 
 def parse_args() -> argparse.Namespace:
+    """Define and parse command-line arguments."""
     parser = argparse.ArgumentParser(
         description=(
             "Create a JSON dictionary mapping index -> IMG filename based on final_patched_BTXRD ordering."
@@ -84,12 +95,15 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Run validation and write the final index map JSON to disk."""
     args = parse_args()
+    # Ordering must be stable so index assignments stay reproducible.
     images = list_images(args.dataset_dir)
     if not images:
         raise SystemExit(f"No .jpeg files found in {args.dataset_dir}")
 
     indices = load_split_indices(args.split_path)
+    # Guard against mismatches between split metadata and actual dataset content.
     validate_indices(indices, total_images=len(images))
 
     index_map = build_index_map(images)
