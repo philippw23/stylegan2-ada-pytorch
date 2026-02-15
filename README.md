@@ -170,22 +170,32 @@ This is the full pipeline that produces `data/btxrd_corrected_dataset.zip`. Run 
 2. **Preprocess, resize, and sort into class folders**  
    This writes `data/dataset/BTXRD_resized_sorted/` and a `dataset.json` with class ids. Adjust paths if yours differ.
    ```bash
-   python data/style_gan_preprocessing.py \
+   python data/style_gan_preprocessing.py preprocess \
      --image-dir data/dataset/final_patched_BTXRD \
      --json-dir data/dataset/BTXRD/Annotations \
      --output-dir data/dataset/BTXRD_resized_sorted \
      --target-size 256
    ```
 
-3. **Filter to the train split and rewrite labels**  
-   Removes images not listed in `dataset_split_old.json` and rewrites `dataset.json` accordingly. Add `--dry-run` first if you want to preview deletions.
+3. **Build the final patched index map**  
+   Creates `data/dataset/final_patched_index_map.json`, used to translate split indices into filenames.
    ```bash
-   python data/correct_split.py \
+   python data/style_gan_preprocessing.py build-index-map \
      --split-path data/dataset/dataset_split_old.json \
-     --dataset-dir data/dataset/BTXRD_resized_sorted
+     --dataset-dir data/dataset/final_patched_BTXRD \
+     --output-path data/dataset/final_patched_index_map.json
    ```
 
-4. **Create the corrected ZIP for StyleGAN**  
+4. **Filter to the train split and rewrite labels**  
+   Removes images not listed in `dataset_split_old.json` and rewrites `dataset.json` accordingly. Add `--dry-run` first if you want to preview deletions.
+   ```bash
+   python data/style_gan_preprocessing.py correct-split \
+     --split-path data/dataset/dataset_split_old.json \
+     --dataset-dir data/dataset/BTXRD_resized_sorted \
+     --index-map data/dataset/final_patched_index_map.json
+   ```
+
+5. **Create the corrected ZIP for StyleGAN**  
    Generates the final archive used for training.
    ```bash
    python data/dataset_tool.py \
