@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=move-dataset
-#SBATCH --output=move-dataset-%j.out
-#SBATCH --error=move-dataset-%j.err
+#SBATCH --output=logs/move-dataset-%j.out
+#SBATCH --error=logs/move-dataset-%j.err
 #SBATCH --time=01:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
