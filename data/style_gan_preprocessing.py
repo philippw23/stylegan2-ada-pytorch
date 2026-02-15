@@ -15,6 +15,8 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from PIL import Image
 
 # Default paths relative to the repository root (override via CLI flags).
+# Keeping all defaults centralized makes the CLI easier to inspect and keeps
+# path updates in one place when the dataset layout changes.
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_IMAGE_DIR = REPO_ROOT / "data" / "dataset" / "final_patched_BTXRD"
 DEFAULT_JSON_DIR = REPO_ROOT / "data" / "dataset" / "BTXRD" / "Annotations"
@@ -34,7 +36,9 @@ TUMOR_CLASSES = [
     "osteofibroma",
 ]
 
+# Valid location prefixes used when `--use-anatomical-location` is enabled.
 ANATOMICAL_LOCATIONS = ["upper limb", "lower limb", "pelvis"]
+# Image files that are considered valid raw inputs for preprocessing.
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 
 
@@ -46,6 +50,8 @@ def load_json(path: Path) -> dict:
 
 def get_class_from_json(js: dict) -> Optional[str]:
     """Extract class label from a BTXRD-style annotation JSON object."""
+    # BTXRD labels are expected under shapes[0].label.
+    # Returning None allows malformed records to be skipped upstream.
     try:
         return js["shapes"][0]["label"]
     except (KeyError, IndexError, TypeError):
@@ -65,6 +71,7 @@ def center_crop_to_square(img: Image.Image) -> Image.Image:
 
 def _normalize_col_name(name: str) -> str:
     """Normalize column names for case/format-insensitive matching."""
+    # Example: "Image ID", "image_id", and "IMAGE-ID" all map to "imageid".
     return "".join(ch for ch in str(name).strip().lower() if ch.isalnum())
 
 
@@ -72,6 +79,8 @@ def load_location_by_image_id(xlsx_path: Path, anatomical_locations: List[str]) 
     """Load anatomical locations keyed by image_id from an XLSX sheet."""
     import pandas as pd
 
+    # Read once and perform robust column matching because real spreadsheets
+    # often contain inconsistent casing/spaces.
     df = pd.read_excel(xlsx_path)
 
     normalized_to_original = {
@@ -86,6 +95,7 @@ def load_location_by_image_id(xlsx_path: Path, anatomical_locations: List[str]) 
 
     location_by_image_id: Dict[str, str] = {}
     for _, row in df.iterrows():
+        # Accept either bare IDs or full paths; basename is used for lookup.
         image_id_raw = row.get(image_id_col)
         if image_id_raw is None or (isinstance(image_id_raw, float) and pd.isna(image_id_raw)):
             continue
@@ -95,6 +105,7 @@ def load_location_by_image_id(xlsx_path: Path, anatomical_locations: List[str]) 
 
         chosen_location: Optional[str] = None
         for loc in anatomical_locations:
+            # Location columns are expected to be one-hot encoded (1 means active).
             original_col = normalized_to_original.get(_normalize_col_name(loc))
             if original_col is None:
                 continue
@@ -108,6 +119,8 @@ def load_location_by_image_id(xlsx_path: Path, anatomical_locations: List[str]) 
             except (TypeError, ValueError):
                 continue
 
+        # Unknown is retained explicitly so downstream filtering can decide
+        # whether to skip or keep these entries.
         location_by_image_id[image_id] = chosen_location or "unknown"
 
     return location_by_image_id
@@ -125,8 +138,11 @@ def process_dataset(
     anatomical_locations: Optional[List[str]] = None,
 ) -> None:
     """Run image preprocessing and optionally write `dataset.json`."""
+    # ##### FILE DISCOVERY AND GLOBAL COUNTERS #####
+    # Output root is class-structured: output_dir/<class_name>/<image>.
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Iterate top-level files only; nested directories are not expected here.
     files = [p for p in image_dir.iterdir() if p.suffix.lower() in IMAGE_EXTENSIONS]
     processed = 0
     skipped_missing_json = 0
@@ -136,15 +152,19 @@ def process_dataset(
     label_entries: List[Tuple[str, str]] = []
     anatomical_locations = anatomical_locations or ANATOMICAL_LOCATIONS
 
+    # ##### ANATOMICAL STRUCTURE LOOKUP SETUP #####
     if use_anatomical_location:
         if xlsx_path is None:
             raise ValueError("xlsx_path must be provided when use_anatomical_location is enabled.")
+        # Build fast lookup: lowercased filename -> location label.
         location_by_image_id = load_location_by_image_id(xlsx_path, anatomical_locations)
     else:
         location_by_image_id = {}
 
+    # ##### IMAGE-BY-IMAGE PREPROCESSING LOOP #####
     for img_path in files:
         img_id = img_path.stem
+        # JSON annotations are expected to share the same stem as the image.
         json_path = json_dir / f"{img_id}.json"
         if not json_path.exists():
             print(f"No JSON found for {img_path.name}")
@@ -154,20 +174,26 @@ def process_dataset(
         js = load_json(json_path)
         class_name = get_class_from_json(js)
         if not class_name:
+            # Missing/malformed label entries are skipped but counted.
             print(f"Cannot extract class for {img_path.name}")
             skipped_missing_label += 1
             continue
         class_name = class_name.lower()
 
+        # In anatomical mode, a known tumor vocabulary is enforced before
+        # combining location + tumor into the final class label.
         if use_anatomical_location and class_name not in TUMOR_CLASSES:
             print(f"Unknown tumor class for {img_path.name}: {class_name}")
             skipped_unknown_class += 1
             continue
 
+        # ##### WITH ANATOMICAL STRUCTURE #####
         if use_anatomical_location:
+            # `dataset.xlsx` mapping keys use filenames (including extension).
             image_id_key = img_path.name.lower()
             location = location_by_image_id.get(image_id_key, "unknown")
             if location == "unknown":
+                # Current behavior is strict: unknown location entries are excluded.
                 print(f"No anatomical location for {img_path.name}")
                 skipped_missing_location += 1
                 continue
@@ -176,8 +202,10 @@ def process_dataset(
         class_dir = output_dir / class_name
         class_dir.mkdir(parents=True, exist_ok=True)
 
+        # Convert to RGB so output is consistent even if inputs are grayscale/RGBA.
         img = Image.open(img_path).convert("RGB")
         if crop_to_square:
+            # Optional center crop avoids non-uniform stretching during resize.
             img = center_crop_to_square(img)
         img = img.resize((target_size, target_size), Image.LANCZOS)
 
@@ -187,6 +215,7 @@ def process_dataset(
         processed += 1
         label_entries.append((out_path.relative_to(output_dir).as_posix(), class_name))
 
+    # ##### SUMMARY OUTPUT #####
     print("\nDONE! Images sorted and resized.")
     print(f"Processed: {processed}")
     print(f"Missing JSON: {skipped_missing_json}")
@@ -196,12 +225,16 @@ def process_dataset(
     if use_anatomical_location:
         print(f"Missing anatomical location: {skipped_missing_location}")
 
+    # ##### STYLEGAN DATASET.JSON WRITING #####
     if write_dataset_json and label_entries:
         if use_anatomical_location:
+            # Deterministic ordering keeps class IDs stable across runs.
             class_names = [f"{loc} {tumor}" for loc in anatomical_locations for tumor in TUMOR_CLASSES]
         else:
+            # For plain preprocessing, class IDs are assigned from observed labels.
             class_names = sorted({class_name for _, class_name in label_entries})
         class_to_id: Dict[str, int] = {class_name: idx for idx, class_name in enumerate(class_names)}
+        # StyleGAN dataset.json expects [["relative/path.ext", class_id], ...].
         labels = [[path, class_to_id[class_name]] for path, class_name in label_entries]
         dataset_path = output_dir / "dataset.json"
         dataset_path.write_text(json.dumps({"labels": labels}), encoding="utf-8")
@@ -236,11 +269,13 @@ def load_split_indices(split_path: Path) -> List[int]:
         raise ValueError(f"{split_path} must contain at least 'train' and 'test' lists") from exc
 
     val_indices = _parse_index_list(split_data.get("val", []), "val", split_path)
+    # Order does not matter for validation; only complete coverage is needed.
     return train_indices + val_indices + test_indices
 
 
 def list_images(dataset_dir: Path) -> List[str]:
     """List `.jpeg` filenames in deterministic lexicographic order."""
+    # The index map relies on this exact sorted order; changing this changes all IDs.
     return sorted([path.name for path in dataset_dir.glob("*.jpeg")])
 
 
@@ -268,11 +303,13 @@ def build_index_map(images: Sequence[str]) -> Dict[str, str]:
 
 def run_build_index_map(split_path: Path, dataset_dir: Path, output_path: Path) -> None:
     """Validate split coverage and write the final index map JSON."""
+    # ##### BUILD INDEX MAP FROM SORTED FILE LIST #####
     images = list_images(dataset_dir)
     if not images:
         raise SystemExit(f"No .jpeg files found in {dataset_dir}")
 
     indices = load_split_indices(split_path)
+    # Ensure split file and discovered dataset size agree before writing mapping.
     validate_indices(indices, total_images=len(images))
 
     index_map = build_index_map(images)
@@ -319,18 +356,23 @@ def delete_not_in_split(
     dry_run: bool,
 ) -> Tuple[int, int, List[str], List[Tuple[str, int]], List[str]]:
     """Delete files not in train split and return deletion/retention statistics."""
+    # ##### TRAIN-SPLIT KEEP SET DERIVATION #####
+    # Guard against stale/incomplete index maps early.
     missing_index = [idx for idx in train_indices if str(idx) not in index_map]
     if missing_index:
         raise KeyError(f"Index map missing {len(missing_index)} train indices (e.g. {missing_index[0]}).")
 
+    # Keep-set is based on filename because index map stores filename only.
     keep_names = {index_map[str(idx)] for idx in train_indices}
     removed = 0
     missing: List[str] = []
     removed_names: List[str] = []
     kept_labels: List[Tuple[str, int]] = []
 
+    # ##### FILE FILTERING AND OPTIONAL DELETION #####
     for rel_path, class_id in labels:
         file_path = source_dir / rel_path
+        # Compare by basename so labels can include class subdirectories.
         if Path(rel_path).name in keep_names:
             kept_labels.append((rel_path, class_id))
             continue
@@ -348,6 +390,7 @@ def delete_not_in_split(
 
 def run_correct_split(split_path: Path, dataset_dir: Path, index_map_path: Path, dry_run: bool) -> None:
     """Apply train split filtering to dataset files and `dataset.json`."""
+    # ##### LOAD INPUTS FOR SPLIT CORRECTION #####
     dataset_json = dataset_dir / "dataset.json"
 
     train_indices = load_train_indices(split_path)
@@ -362,7 +405,9 @@ def run_correct_split(split_path: Path, dataset_dir: Path, index_map_path: Path,
         dry_run=dry_run,
     )
 
+    # ##### APPLY CHANGES TO DATASET.JSON #####
     if not dry_run:
+        # Keep labels and on-disk files synchronized after filtering.
         rewrite_dataset_json(dataset_json, kept_labels)
 
     print(f"Kept {kept} train images from {split_path}.")
@@ -395,6 +440,9 @@ def run_full_pipeline(
     dry_run: bool,
 ) -> None:
     """Run preprocess, index-map build, and train-split correction in sequence."""
+    # ##### FULL PIPELINE ORCHESTRATION #####
+    # This helper is intentionally orchestration-only: each step reuses the
+    # same underlying commands available as standalone subcommands.
     print("[1/3] Running preprocess...")
     process_dataset(
         image_dir=image_dir,
@@ -430,6 +478,7 @@ def add_preprocess_cli_args(
     output_help: str,
 ) -> None:
     """Add preprocess-related CLI options to a parser."""
+    # Reused by both `preprocess` and `full-pipeline` so options stay aligned.
     parser.add_argument(
         "--image-dir",
         default=DEFAULT_IMAGE_DIR,
@@ -477,6 +526,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="BTXRD preprocessing and split utility for StyleGAN2-ADA.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    # ##### CLI SUBCOMMAND: PREPROCESS #####
+    # 1) Prepare class-structured training images.
     preprocess = subparsers.add_parser("preprocess", help="Resize/sort images and write dataset.json.")
     add_preprocess_cli_args(
         parser=preprocess,
@@ -485,6 +536,8 @@ def build_parser() -> argparse.ArgumentParser:
         output_help=f"Output directory for resized/sorted images (default: {DEFAULT_OUTPUT_DIR})",
     )
 
+    # ##### CLI SUBCOMMAND: BUILD-INDEX-MAP #####
+    # 2) Build deterministic index->filename map for external split indices.
     index_map = subparsers.add_parser("build-index-map", help="Build final_patched index map.")
     index_map.add_argument(
         "--split-path",
@@ -505,6 +558,8 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"Output JSON path (default: {DEFAULT_INDEX_MAP_OUTPUT})",
     )
 
+    # ##### CLI SUBCOMMAND: CORRECT-SPLIT #####
+    # 3) Apply split filtering to an already preprocessed StyleGAN dataset.
     correct_split = subparsers.add_parser("correct-split", help="Filter dataset to train split.")
     correct_split.add_argument(
         "--split-path",
@@ -530,10 +585,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Show what would be deleted without removing files or rewriting dataset.json.",
     )
 
+    # ##### CLI SUBCOMMAND: FULL-PIPELINE #####
     full_pipeline = subparsers.add_parser(
         "full-pipeline",
         help="Run preprocess, build-index-map, and correct-split in one call.",
     )
+    # Combined command for reproducibility and convenience in batch jobs.
     add_preprocess_cli_args(
         parser=full_pipeline,
         output_flag="--preprocess-output-dir",
@@ -578,6 +635,7 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
+    # Explicit command dispatch keeps CLI behavior readable and easy to trace.
     if args.command == "preprocess":
         process_dataset(
             image_dir=args.image_dir,
