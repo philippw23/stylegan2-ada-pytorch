@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Create balanced random fake-image subsets from multiple generated folders."""
+
 import argparse
 import random
 import shutil
@@ -6,6 +8,7 @@ from pathlib import Path
 
 
 def parse_args():
+    """Parse command-line arguments for batch fake-image subset selection."""
     p = argparse.ArgumentParser(
         description=(
             "Batch-select balanced random subsets from multiple generated_images_* folders "
@@ -48,6 +51,12 @@ def parse_args():
 
 
 def select_one(src_root: Path, dst_root: Path, total: int, seed: int | None):
+    """Select a balanced random subset from one source tree and copy it flat.
+
+    The source directory must contain one subdirectory per class. Files are
+    sampled approximately evenly across classes and copied into a single output
+    directory using `<class>__<filename>` naming to avoid collisions.
+    """
     if seed is not None:
         random.seed(seed)
     else:
@@ -88,6 +97,7 @@ def select_one(src_root: Path, dst_root: Path, total: int, seed: int | None):
 
 
 def main():
+    """Run selection for all source folders matching the configured glob."""
     args = parse_args()
 
     src_base = Path(args.src_base)
