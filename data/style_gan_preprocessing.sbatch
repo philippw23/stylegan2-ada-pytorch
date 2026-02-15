@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=stylegan-preprocess
-#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_preprocessing-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_preprocessing-%A.err
+#SBATCH --output=./logs/style_gan_preprocessing-%A.out
+#SBATCH --error=./logs/style_gan_preprocessing-%A.err
 ##SBATCH --partition=universe,asteroids 
 ##SBATCH --qos=master-queuesave
 #SBATCH --time=0-04:00:00
@@ -10,7 +10,7 @@
 #SBATCH --mem=16G
 
 
-REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
+REPO_DIR="."
 LOG_DIR="${LOG_DIR:-${REPO_DIR}/logs}"
 IMAGE_DIR="${IMAGE_DIR:-${REPO_DIR}/data/dataset/final_patched_BTXRD}"
 JSON_DIR="${JSON_DIR:-${REPO_DIR}/data/dataset/BTXRD/Annotations}"

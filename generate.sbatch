@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=generate
-#SBATCH --output=logs/stylegan_generate-%A.out
-#SBATCH --error=logs/stylegan_generate-%A.err
+#SBATCH --output=./logs/stylegan_generate-%A.out
+#SBATCH --error=./logs/stylegan_generate-%A.err
 #SBATCH --partition=asteroids 
 #SBATCH --qos=master-queuesave
 #SBATCH --time=7-00:00:00
@@ -62,12 +62,12 @@ echo "Generating classes ${start_class}-${end_class}"
 
 for class in $(seq "${start_class}" "${end_class}"); do
   class_name=${class_names[$class]}
-  outdir="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/generated_images_${snapshot}/${class_name}_gamma${gamma}_snapshot${snapshot}_trunc${truncation}"
+  outdir="./generated_images_${snapshot}/${class_name}_gamma${gamma}_snapshot${snapshot}_trunc${truncation}"
   echo "Class ${class}: ${class_name}"
   python generate.py \
     --outdir="${outdir}" \
     --trunc=${truncation} \
     --seeds=0-49 \
-    --network="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/checkpoints/stylegan2ada_cond_train_corrected/00000-btxrd_train_anatomical_dataset-cond-mirror-auto1-gamma6-batch16-ada/network-snapshot-${snapshot}.pkl" \
+    --network="./checkpoints/stylegan2ada_cond_train_corrected/00000-btxrd_train_anatomical_dataset-cond-mirror-auto1-gamma6-batch16-ada/network-snapshot-${snapshot}.pkl" \
     --class=${class}
 done

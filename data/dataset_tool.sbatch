@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=dataset-tool
-#SBATCH --chdir=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch
-#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/dataset_tool-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/dataset_tool-%A.err
+#SBATCH --chdir=.
+#SBATCH --output=./logs/dataset_tool-%A.out
+#SBATCH --error=./logs/dataset_tool-%A.err
 #SBATCH --time=0-04:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=8G
@@ -10,7 +10,7 @@
 # Ensure Python deps are available
 python -m pip install --user pillow click tqdm numpy
 
-REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
+REPO_DIR="."
 
 # Override via env vars when submitting, e.g.:
 # sbatch --export=ALL,SOURCE=/path/in,DEST=/path/out.zip data/dataset_tool.sbatch

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=training
-#SBATCH --output=logs/style_gan_training-%A.out
-#SBATCH --error=logs/style_gan_training-%A.err
+#SBATCH --output=./logs/style_gan_training-%A.out
+#SBATCH --error=./logs/style_gan_training-%A.err
 #SBATCH --partition=universe,asteroids 
 #SBATCH --qos=master-queuesave
 #SBATCH --time=7-00:00:00
@@ -46,7 +46,7 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/u/home/wiep/.local/lib/python3.12/si
 export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST:-8.0}"
 
 # Run the program
-REPO_DIR="/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch"
+REPO_DIR="."
 
 # Override via env vars when submitting (e.g. `sbatch --export=ALL,BATCH=8 ...`).
 DATASET_ZIP="${DATASET_ZIP:-${REPO_DIR}/data/btxrd_train_dataset.zip}"
