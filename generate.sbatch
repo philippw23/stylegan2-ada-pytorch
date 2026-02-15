@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=generate
-#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/stylegan_generate-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/stylegan_generate-%A.err
+#SBATCH --output=logs/stylegan_generate-%A.out
+#SBATCH --error=logs/stylegan_generate-%A.err
 #SBATCH --partition=asteroids 
 #SBATCH --qos=master-queuesave
 #SBATCH --time=7-00:00:00

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=fid50k
-#SBATCH --output=fid50k-%j.out
-#SBATCH --error=fid50k-%j.err
+#SBATCH --output=logs/fid50k-%j.out
+#SBATCH --error=logs/fid50k-%j.err
 #SBATCH --partition=asteroids
 #SBATCH --qos=master-queuesave
 #SBATCH --time=04:00:00

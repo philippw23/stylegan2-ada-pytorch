@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=select-fid-fake-batch
-#SBATCH --output=select_fid_fake_batch-%j.out
-#SBATCH --error=select_fid_fake_batch-%j.err
+#SBATCH --output=logs/select_fid_fake_batch-%j.out
+#SBATCH --error=logs/select_fid_fake_batch-%j.err
 #SBATCH --partition=asteroids
 #SBATCH --qos=master-queuesave
 #SBATCH --time=01:00:00

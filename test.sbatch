@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=test-py
-#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/test-%j.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/test-%j.err
+#SBATCH --output=logs/test-%j.out
+#SBATCH --error=logs/test-%j.err
 #SBATCH --time=00:10:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G

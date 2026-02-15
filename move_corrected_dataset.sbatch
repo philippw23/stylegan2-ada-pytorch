@@ -1,8 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=push-corrected-ds
-#SBATCH --chdir=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch
-#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/move_corrected_dataset-%j.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/move_corrected_dataset-%j.err
+#SBATCH --output=logs/move_corrected_dataset-%j.out
+#SBATCH --error=logs/move_corrected_dataset-%j.err
 #SBATCH --time=0-01:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G

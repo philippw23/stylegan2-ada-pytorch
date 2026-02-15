@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Plot FID (`fid50k_full`) against training checkpoint from a JSONL log."""
+
 import argparse
 import json
 import re
@@ -11,6 +13,11 @@ SNAP_RE = re.compile(r"network-snapshot-(\d+)\.pkl$")
 
 
 def parse_jsonl(path: Path):
+    """Extract `(checkpoint_step, fid50k_full)` pairs from a metrics JSONL file.
+
+    Only entries with a `snapshot_pkl` matching `network-snapshot-<step>.pkl`
+    and a numeric `results.fid50k_full` value are returned.
+    """
     points = []
     with path.open("r", encoding="utf-8") as f:
         for line_no, line in enumerate(f, 1):
@@ -34,6 +41,7 @@ def parse_jsonl(path: Path):
 
 
 def main():
+    """Parse CLI arguments, build the FID-vs-checkpoint plot, and save it."""
     parser = argparse.ArgumentParser(
         description="Plot FID (fid50k_full) vs checkpoint from a metric JSONL file."
     )

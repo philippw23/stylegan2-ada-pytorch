@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=training
-#SBATCH --output=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_training-%A.out
-#SBATCH --error=/vol/miltank/users/wiep/Documents/stylegan2-ada-pytorch/logs/style_gan_training-%A.err
+#SBATCH --output=logs/style_gan_training-%A.out
+#SBATCH --error=logs/style_gan_training-%A.err
 #SBATCH --partition=universe,asteroids 
 #SBATCH --qos=master-queuesave
 #SBATCH --time=7-00:00:00
